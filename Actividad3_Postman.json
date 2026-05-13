@@ -1,0 +1,454 @@
+{
+  "info": {
+    "name": "Actividad 3 - Task Manager API",
+    "description": "Colección de endpoints para probar la Actividad 3: v2 schema, state machine, audit y búsqueda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Tareas (V2 - asignado objeto)",
+      "item": [
+        {
+          "name": "GET - Listar tareas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas"]
+            }
+          }
+        },
+        {
+          "name": "GET - Listar tareas (filtro asignado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas?asignado=alisson quijano",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas"],
+              "query": [
+                { "key": "asignado", "value": "alisson quijano" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear tarea (asignado objeto)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asignado\": { \"nombre\": \"Alisson Quijano\"},\n  \"peso\": 4,\n  \"titulo\": \"Tarea V2\",\n  \"descripcion\": \"Creada con esquema V2\"\n}"
+            },
+            "url": { "raw": "http://localhost:3000/tareas", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas"] }
+          }
+        },
+        {
+          "name": "POST - Crear batch de tareas (asignado objeto)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"asignado\": { \"nombre\": \"Christian Renderos\" },\n    \"peso\": 2,\n    \"titulo\": \"Testing endpoints\",\n    \"descripcion\": \"Hacer pruebas manuales en Postman\"\n  },\n  {\n    \"asignado\": { \"nombre\": \"Gabriel Martínez\" },\n    \"peso\": 4,\n    \"titulo\": \"Documentación\",\n    \"descripcion\": \"Documentar API en Swagger\"\n  }\n]"
+            },
+            "url": { "raw": "http://localhost:3000/tareas/batch", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas","batch"] }
+          }
+        },
+        {
+          "name": "GET - Obtener tarea por ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "http://localhost:3000/tareas/1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas","1"] } }
+        },
+        {
+          "name": "PUT - Actualizar tarea (asignado objeto)",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"asignado\": { \"nombre\": \"Alejandra Arriola\" },\n  \"peso\": 6,\n  \"titulo\": \"Diseño mejorado\",\n  \"descripcion\": \"Refactorizar endpoints\"\n}" },
+            "url": { "raw": "http://localhost:3000/tareas/1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas","1"] }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar tarea",
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "http://localhost:3000/tareas/1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas","1"] } }
+        },
+        {
+          "name": "DELETE - Eliminar batch de tareas",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{ \"ids\": [1,2,3] }" },
+            "url": { "raw": "http://localhost:3000/tareas/batch", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["tareas","batch"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reasignación - PATCH",
+      "item": [
+        {
+          "name": "PATCH - Reasignar tarea (string)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoAsignado\": \"Christian Renderos\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/asignado",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "asignado"],
+              "query": []
+            },
+            "description": "Reasigna una tarea a otra persona (acepta string)"
+          }
+        },
+        {
+          "name": "PATCH - Reasignar tarea (objeto)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoAsignado\": {\n    \"nombre\": \"Gabriel Martínez\",\n    \"email\": \"gabriel@example.com\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/asignado",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "asignado"]
+            },
+            "description": "Reasigna una tarea (acepta objeto con nombre, id, email)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Máquina de Estados",
+      "item": [
+        {
+          "name": "POST - Iniciar tarea (pendiente -> en_progreso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"iniciar\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/transicionar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "transicionar"]
+            }
+          }
+        },
+        {
+          "name": "POST - Bloquear tarea (en_progreso -> bloqueada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"bloquear\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/transicionar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "transicionar"]
+            }
+          }
+        },
+        {
+          "name": "POST - Completar tarea (en_progreso -> completada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"completar\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/transicionar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "transicionar"]
+            }
+          }
+        },
+        {
+          "name": "POST - Reabrir tarea (bloqueada -> pendiente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"reabrir\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/transicionar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "transicionar"]
+            }
+          }
+        },
+        {
+          "name": "POST - Transición inválida (debe fallar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion\": \"completar\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/transicionar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "transicionar"]
+            },
+            "description": "Intenta completar desde pendiente (debería fallar con 400)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auditoría - Historial",
+      "item": [
+        {
+          "name": "GET - Obtener historial de cambios de una tarea",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/historial",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "historial"]
+            },
+            "description": "Devuelve todos los cambios (reasignaciones, cambios de estado, actualizaciones) para una tarea"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Búsqueda Full-Text",
+      "item": [
+        {
+          "name": "GET - Buscar por descripción y asignado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/buscar?q=API",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "buscar"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "API"
+                }
+              ]
+            },
+            "description": "Búsqueda insensible a mayúsculas y acentos en descripción y nombre de asignado"
+          }
+        },
+        {
+          "name": "GET - Buscar por nombre (sin acentos)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/buscar?q=gabriel martinez",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "buscar"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "gabriel martinez"
+                }
+              ]
+            },
+            "description": "Busca 'gabriel martinez' y debe encontrar 'Gabriel Martínez' (ignora acentos)"
+          }
+        },
+        {
+          "name": "GET - Buscar múltiples palabras",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/buscar?q=alisson endpoints",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "buscar"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "alisson endpoints"
+                }
+              ]
+            },
+            "description": "Busca que contenga AMBAS palabras (AND)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comentarios",
+      "item": [
+        {
+          "name": "POST - Crear comentario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Esta tarea requiere revisión antes de comenzar\",\n  \"autor\": \"Supervisor\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/comentarios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "comentarios"]
+            }
+          }
+        },
+        {
+          "name": "GET - Listar comentarios de una tarea",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/comentarios",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "comentarios"]
+            }
+          }
+        },
+        {
+          "name": "GET - Obtener un comentario específico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/comentarios/123456789",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "comentarios", "123456789"]
+            },
+            "description": "Reemplaza 123456789 con un ID real de comentario"
+          }
+        },
+        {
+          "name": "PUT - Actualizar comentario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"Comentario actualizado\",\n  \"autor\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/comentarios/123456789",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "comentarios", "123456789"]
+            },
+            "description": "Reemplaza 123456789 con un ID real de comentario"
+          }
+        },
+        {
+          "name": "DELETE - Eliminar comentario",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/tareas/1/comentarios/123456789",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["tareas", "1", "comentarios", "123456789"]
+            },
+            "description": "Reemplaza 123456789 con un ID real de comentario"
+          }
+        }
+      ]
+    }
+  ]
+}
