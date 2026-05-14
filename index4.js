@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const https = require('https');
 const app = express();
 const PORT = 3000
 
@@ -38,6 +40,18 @@ let historialCambios = [];
 let etiquetas = []; // { id, nombre }
 let tareaEtiquetas = []; // { tareaId, etiquetaId }
 let nextEtiquetaId = 1;
+
+let notificacionesRecibidas = []; // almacena los disparos para que el profe los pueda ver
+
+let webhooks = [
+    {
+        id: 1,
+        url: "https://webhook.site/d40b5513-d93a-4593-b979-51586492e409",
+        descripcion: "Receptor de prueba interno",
+        creadoEn: "2026-05-13 08:00:00"
+    }
+];
+let nextWebhookId = 2;
 
 const estadosValidos = ["pendiente", "en_progreso", "bloqueada", "completada"];
 
@@ -509,6 +523,15 @@ app.post('/tareas/:id/transicionar', (req, res) => {
     tarea.estado = nuevoEstado;
     historialCambios.push(cambio);
 
+    // Disparo de webhooks: notifica a todas las URLs registradas
+    dispararWebhooks({
+        evento: 'estado_cambiado',
+        tareaId: tarea.id,
+        de: actual,
+        a: nuevoEstado,
+        fecha: formatFechaHora(new Date())
+    });
+
     res.json({ mensaje: 'Estado actualizado', cambio, tarea });
 });
 
@@ -856,6 +879,166 @@ app.get('/tareas/:id/etiquetas', (req, res) => {
     const tagsDeTarea = asociaciones.map(asoc => etiquetas.find(e => e.id === asoc.etiquetaId)).filter(Boolean);
     
     res.json(tagsDeTarea);
+});
+
+// ==========================
+// RECEPTOR DE PRUEBA - recibe los disparos del webhook
+// ==========================
+
+// POST /test-webhook — recibe la notificacion y la guarda
+app.post('/test-webhook', (req, res) => {
+    const notificacion = {
+        id: Date.now(),
+        recibidoEn: formatFechaHora(new Date()),
+        payload: req.body
+    };
+    notificacionesRecibidas.push(notificacion);
+    res.status(200).json({ mensaje: "Notificacion recibida" });
+});
+
+// GET /test-webhook — muestra todas las notificaciones recibidas
+app.get('/test-webhook', (req, res) => {
+    res.json({
+        total: notificacionesRecibidas.length,
+        notificaciones: notificacionesRecibidas
+    });
+});
+
+// ==========================
+// WEBHOOKS - ACTIVIDAD 4 (Parte B)
+// ==========================
+
+function dispararWebhooks(payload) {
+    // Envia el evento a todas las URLs registradas sin bloquear la respuesta
+    for (const wh of webhooks) {
+        try {
+            const cuerpo = JSON.stringify(payload);
+            const urlObj = new URL(wh.url);
+            const modulo = urlObj.protocol === 'https:' ? https : http;
+
+            const opciones = {
+                hostname: urlObj.hostname,
+                port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+                path: urlObj.pathname + urlObj.search,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(cuerpo)
+                }
+            };
+
+            const peticion = modulo.request(opciones);
+            peticion.on('error', () => {});
+            peticion.write(cuerpo);
+            peticion.end();
+        } catch (_) {
+            // URL invalida u error de red, se omite para no interrumpir la respuesta
+        }
+    }
+}
+
+// ==========================
+// POST /webhooks - REGISTRAR SUSCRIPCION
+// ==========================
+app.post('/webhooks', (req, res) => {
+    const { url, descripcion } = req.body;
+
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+        return res.status(400).json({ mensaje: "La URL es requerida" });
+    }
+
+    try {
+        new URL(url.trim());
+    } catch (_) {
+        return res.status(400).json({ mensaje: "La URL no es valida" });
+    }
+
+    const yaExiste = webhooks.find(w => w.url === url.trim());
+    if (yaExiste) {
+        return res.status(400).json({ mensaje: "Ya existe una suscripcion con esa URL", webhook: yaExiste });
+    }
+
+    const nuevoWebhook = {
+        id: nextWebhookId++,
+        url: url.trim(),
+        descripcion: descripcion ? descripcion.trim() : null,
+        creadoEn: formatFechaHora(new Date())
+    };
+
+    webhooks.push(nuevoWebhook);
+    res.status(201).json(nuevoWebhook);
+});
+
+// ==========================
+// GET /webhooks - LISTAR SUSCRIPCIONES
+// ==========================
+app.get('/webhooks', (req, res) => {
+    res.json(webhooks);
+});
+
+// ==========================
+// GET /webhooks/:id - OBTENER UNA SUSCRIPCION
+// ==========================
+app.get('/webhooks/:id', (req, res) => {
+    const webhook = webhooks.find(w => w.id == req.params.id);
+
+    if (!webhook) {
+        return res.status(404).json({ mensaje: "Webhook no encontrado" });
+    }
+
+    res.json(webhook);
+});
+
+// ==========================
+// PUT /webhooks/:id - ACTUALIZAR URL/CONFIG
+// ==========================
+app.put('/webhooks/:id', (req, res) => {
+    const webhook = webhooks.find(w => w.id == req.params.id);
+
+    if (!webhook) {
+        return res.status(404).json({ mensaje: "Webhook no encontrado" });
+    }
+
+    const { url, descripcion } = req.body;
+
+    if (url !== undefined) {
+        if (typeof url !== 'string' || url.trim() === '') {
+            return res.status(400).json({ mensaje: "La URL no puede estar vacia" });
+        }
+
+        try {
+            new URL(url.trim());
+        } catch (_) {
+            return res.status(400).json({ mensaje: "La URL no es valida" });
+        }
+
+        const duplicado = webhooks.find(w => w.url === url.trim() && w.id != req.params.id);
+        if (duplicado) {
+            return res.status(400).json({ mensaje: "Ya existe otro webhook con esa URL" });
+        }
+
+        webhook.url = url.trim();
+    }
+
+    if (descripcion !== undefined) {
+        webhook.descripcion = typeof descripcion === 'string' ? descripcion.trim() : null;
+    }
+
+    res.json(webhook);
+});
+
+// ==========================
+// DELETE /webhooks/:id - ELIMINAR SUSCRIPCION
+// ==========================
+app.delete('/webhooks/:id', (req, res) => {
+    const index = webhooks.findIndex(w => w.id == req.params.id);
+
+    if (index === -1) {
+        return res.status(404).json({ mensaje: "Webhook no encontrado" });
+    }
+
+    webhooks.splice(index, 1);
+    res.status(204).send();
 });
 
 app.listen(PORT, () => {

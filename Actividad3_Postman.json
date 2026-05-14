@@ -732,6 +732,201 @@
           ]
         },
         {
+          "name": "Webhooks",
+          "item": [
+            {
+              "name": "GET - Listar webhooks",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:3000/webhooks",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks"]
+                }
+              }
+            },
+            {
+              "name": "GET - Obtener webhook por ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:3000/webhooks/1",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks", "1"]
+                }
+              }
+            },
+            {
+              "name": "POST - Registrar webhook",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"url\": \"https://webhook.site/d40b5513-d93a-4593-b979-51586492e409\",\n  \"descripcion\": \"Mi suscripcion de prueba\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/webhooks",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks"]
+                }
+              }
+            },
+            {
+              "name": "PUT - Actualizar webhook",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descripcion\": \"Descripcion actualizada\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/webhooks/1",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks", "1"]
+                }
+              }
+            },
+            {
+              "name": "DELETE - Eliminar webhook",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:3000/webhooks/1",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks", "1"]
+                }
+              }
+            },
+            {
+              "name": "POST - Disparar webhook (iniciar tarea)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accion\": \"iniciar\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/tareas/1/transicionar",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["tareas", "1", "transicionar"]
+                },
+                "description": "Cambia el estado de la tarea y dispara la notificacion a todos los webhooks registrados"
+              }
+            },
+            {
+              "name": "GET - Ver notificaciones recibidas (receptor interno)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:3000/test-webhook",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["test-webhook"]
+                },
+                "description": "Muestra todos los payloads que llegaron al receptor interno de prueba"
+              }
+            },
+            {
+              "name": "VALIDACION - URL invalida (espera 400)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"url\": \"no-es-una-url\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/webhooks",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks"]
+                },
+                "description": "Debe retornar 400 porque la URL no tiene formato valido"
+              }
+            },
+            {
+              "name": "VALIDACION - URL duplicada (espera 400)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"url\": \"https://webhook.site/d40b5513-d93a-4593-b979-51586492e409\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/webhooks",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks"]
+                },
+                "description": "Debe retornar 400 porque ya existe un webhook con esa URL"
+              }
+            },
+            {
+              "name": "VALIDACION - Webhook inexistente (espera 404)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:3000/webhooks/999",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks", "999"]
+                },
+                "description": "Debe retornar 404 porque el webhook con ID 999 no existe"
+              }
+            },
+            {
+              "name": "VALIDACION - Sin URL en body (espera 400)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://localhost:3000/webhooks",
+                  "protocol": "http",
+                  "host": ["localhost"],
+                  "port": "3000",
+                  "path": ["webhooks"]
+                },
+                "description": "Debe retornar 400 porque no se envio ninguna URL"
+              }
+            }
+          ]
+        },
+        {
           "name": "Etiquetas",
           "item": [
             {
